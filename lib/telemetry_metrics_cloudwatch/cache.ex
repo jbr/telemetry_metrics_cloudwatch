@@ -61,8 +61,8 @@ defmodule TelemetryMetricsCloudwatch.Cache do
   # if the measurement is nil
   defp coalesce(cache, _metric, nil, _tags), do: cache
 
-  defp coalesce(%Cache{counters: counters} = cache, %Counter{} = metric, _measurement, tags) do
-    counters = Map.update(counters, {metric, tags}, 1, &(&1 + 1))
+  defp coalesce(%Cache{counters: counters} = cache, %Counter{} = metric, measurement, tags) do
+    counters = Map.update(counters, {metric, tags}, measurement, &(&1 + measurement))
     Map.put(cache, :counters, counters)
   end
 
@@ -141,7 +141,7 @@ defmodule TelemetryMetricsCloudwatch.Cache do
       |> Map.get(:summaries)
       |> Enum.map(fn {{metric, tags}, measurements} ->
         [
-          metric_name: extract_string_name(metric) <> ".summary",
+          metric_name: extract_string_name(metric),
           values: measurements,
           dimensions: tags,
           unit: get_unit(metric.unit)
@@ -157,7 +157,7 @@ defmodule TelemetryMetricsCloudwatch.Cache do
       |> Map.get(:counters)
       |> Enum.map(fn {{metric, tags}, measurement} ->
         [
-          metric_name: extract_string_name(metric) <> ".count",
+          metric_name: extract_string_name(metric),
           value: measurement,
           dimensions: tags,
           unit: "Count"
@@ -173,7 +173,7 @@ defmodule TelemetryMetricsCloudwatch.Cache do
       |> Map.get(:last_values)
       |> Enum.map(fn {{metric, tags}, measurement} ->
         [
-          metric_name: extract_string_name(metric) <> ".last_value",
+          metric_name: extract_string_name(metric),
           value: measurement,
           dimensions: tags,
           unit: get_unit(metric.unit)
